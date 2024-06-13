@@ -54,7 +54,22 @@ function App() {
       const history = [];
       for (const message of messages.data.reverse()) {
         console.log(`${message.role} > ${message.content[0].text.value}`);
-        history.push({ role: message.role, content: message.content[0].text.value });
+        let index = 0;
+        const { text } = message.content[0];
+        const { annotations } = text;
+        const citations = [];
+        for (let annotation of annotations) {
+          // text.value = text.value.replace(annotation.text, "[" + index + "]");
+          text.value = text.value.replace(annotation.text, "");
+          const { file_citation } = annotation;
+          if (file_citation) {
+            const citedFile = await openai.files.retrieve(file_citation.file_id);
+            citations.push("[" + index + "]" + citedFile.filename);
+          }
+          index++;
+        }
+        history.push({ role: message.role, content: text.value });
+        console.log(citations.join("\n"));
       }
       console.log(history);
       setMessages(history);
