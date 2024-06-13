@@ -14,7 +14,6 @@ import {
 
 function App() {
   const [threadId, setThreadId] = useState(null);
-  const [stream, setStream] = useState(null);
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [prompt, setPrompt] = useState("");
@@ -101,7 +100,7 @@ function App() {
                 />
               ))}
               {loading && (
-                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '15px' }}>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '15px', marginBottom: '15px' }}>
                   <Loader />
                 </div>
               )}
