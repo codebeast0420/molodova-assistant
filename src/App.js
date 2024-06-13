@@ -9,14 +9,14 @@ import {
   MessageList,
   Message,
   MessageInput,
+  Loader
 } from "@chatscope/chat-ui-kit-react";
 
 function App() {
   const [threadId, setThreadId] = useState(null);
   const [stream, setStream] = useState(null);
-  const [messages, setMessages] = useState([
-    
-  ]);
+  const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [prompt, setPrompt] = useState("");
 
   const openai = new OpenAI({ apiKey: process.env.REACT_APP_OPENAI_API_KEY, dangerouslyAllowBrowser: true });
@@ -31,6 +31,7 @@ function App() {
     console.log('prompt', prompt);
     if (prompt === "") return;
     setMessages([...messages, { role: "user", content: prompt }]);
+    setLoading(true);
     const message = await openai.beta.threads.messages.create(
       threadId,
       {
@@ -50,11 +51,10 @@ function App() {
       const messages = await openai.beta.threads.messages.list(
         run.thread_id
       );
-      // if (Array.isArray(messages.data) && messages.data.length === 0) {
+
       const history = [];
       for (const message of messages.data.reverse()) {
         console.log(`${message.role} > ${message.content[0].text.value}`);
-        // setMessages([...messages, { role: message.role, content: message.content[0].text.value }]);
         history.push({ role: message.role, content: message.content[0].text.value });
       }
       console.log(history);
@@ -63,6 +63,7 @@ function App() {
     } else {
       console.log(run.status);
     }
+    setLoading(false);
   }
 
   useEffect(() => {
@@ -74,7 +75,7 @@ function App() {
       <div style={{ position: "relative", borderRadius: '0.5rem', display: 'flex', alignItems: 'center', flexDirection: 'column' }}>
         <h1 style={{ textAlign: 'center', color: 'white' }}>Tech and Innovation Ecosystem of Moldova Assistant</h1>
         <MainContainer
-        style={{ borderRadius: '0.5rem', padding: '0.5rem', backgroundColor: '#111928', height: "70vh", width: "35vw",}}
+          style={{ borderRadius: '0.5rem', padding: '0.5rem', backgroundColor: '#111928', height: "70vh", width: "35vw", }}
         >
           <ChatContainer>
             <MessageList>
@@ -82,6 +83,7 @@ function App() {
                 model={{
                   message: "Hello, I'm Tech and Innovation Ecosystem of Moldova Assistant. How can I help you today?",
                   sender: 'Tech and Innovation Ecosystem of Moldova Assistant',
+                  sentTime: 'Just now',
                   direction: 'incoming',
                 }}
                 style={{ marginTop: '10px' }}
@@ -92,11 +94,17 @@ function App() {
                   model={{
                     message: message.content,
                     sender: message.role === 'user' ? 'me' : 'Tech and Innovation Ecosystem of Moldova Assistant',
+                    sentTime: 'Just now',
                     direction: message.role === 'user' ? 'outgoing' : 'incoming',
                   }}
                   style={{ marginTop: '10px' }}
                 />
               ))}
+              {loading && (
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: '15px' }}>
+                  <Loader />
+                </div>
+              )}
             </MessageList>
             <MessageInput placeholder="Type message here"
               onChange={(value) => {
@@ -105,6 +113,7 @@ function App() {
               onSend={() => {
                 createMessage(prompt);
               }}
+              disabled={loading}
             />
           </ChatContainer>
         </MainContainer>
