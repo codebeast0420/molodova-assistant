@@ -56,6 +56,8 @@ function App() {
         console.log(`${message.role} > ${message.content[0].text.value}`);
         let index = 0;
         const { text } = message.content[0];
+        text.value = text.value.replace(/\*\*/g, "");
+        text.value = text.value.replace(/\#\#\#/g, "");
         const { annotations } = text;
         const citations = [];
         for (let annotation of annotations) {
@@ -78,6 +80,31 @@ function App() {
       console.log(run.status);
     }
     setLoading(false);
+  }
+
+  const createStream = async () => {
+    // We use the stream SDK helper to create a run with
+    // streaming. The SDK provides helpful event listeners to handle 
+    // the streamed response.
+    const thread = await openai.beta.threads.create({
+      messages: [
+        {
+          role: 'user',
+          content: "What's the mission of Deep Knowledge Group? why are they so interested in Moldova?",
+        },
+      ],
+    });
+
+    const run = openai.beta.threads.runs.stream(thread.id, {
+      assistant_id: process.env.REACT_APP_ASSISTANT_ID
+    })
+      .on('event', (event) => console.log('event', event))
+      .on('textDelta', (delta, snapshot) => console.log('textDelta', snapshot))
+      .on('messageDelta', (delta, snapshot) => console.log('messageDelta', snapshot))
+      .on('run', (run) => console.log('run', run))
+      .on('connect', () => console.log('connected'));
+    const result = await run.finalRun();
+    console.log('Run Result' + result);
   }
 
   useEffect(() => {
@@ -126,6 +153,7 @@ function App() {
               }}
               onSend={() => {
                 createMessage(prompt);
+                // createStream();
               }}
               disabled={loading}
             />
