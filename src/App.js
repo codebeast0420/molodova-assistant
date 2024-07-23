@@ -114,7 +114,7 @@ function App() {
   return (
     <div style={{ width: '100%', minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#111928' }}>
       <div style={{ position: "relative", borderRadius: '0.5rem', display: 'flex', alignItems: 'center', flexDirection: 'column' }}>
-        <h1 style={{ textAlign: 'center', color: 'white' }}>Tech and Innovation Ecosystem of Moldova Assistant</h1>
+        <h1 style={{ textAlign: 'center', color: 'white' }}>DKV HR Onboarding Assistant</h1>
         <MainContainer
           style={{ borderRadius: '0.5rem', padding: '0.5rem', backgroundColor: '#111928', height: "70vh", width: "60vw", }}
         >
@@ -122,8 +122,8 @@ function App() {
             <MessageList>
               <Message
                 model={{
-                  message: "Hello, I'm Tech and Innovation Ecosystem of Moldova Assistant. How can I help you today?",
-                  sender: 'Tech and Innovation Ecosystem of Moldova Assistant',
+                  message: "Hello, I'm DKV HR Onboarding Assistant. How can I help you today?",
+                  sender: 'DKV HR Onboarding Assistant',
                   sentTime: 'Just now',
                   direction: 'incoming',
                 }}
@@ -134,7 +134,7 @@ function App() {
                   key={index}
                   model={{
                     message: message.content,
-                    sender: message.role === 'user' ? 'me' : 'Tech and Innovation Ecosystem of Moldova Assistant',
+                    sender: message.role === 'user' ? 'me' : 'DKV HR Onboarding Assistant',
                     sentTime: 'Just now',
                     direction: message.role === 'user' ? 'outgoing' : 'incoming',
                   }}
