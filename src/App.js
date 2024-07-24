@@ -23,7 +23,6 @@ function App() {
   const createThread = async () => {
     const thread = await openai.beta.threads.create();
     setThreadId(thread.id);
-
   }
 
   const createMessage = async (prompt) => {
@@ -82,15 +81,23 @@ function App() {
     setLoading(false);
   }
 
-  const createStream = async () => {
+  const createStream = async (prompt) => {
     // We use the stream SDK helper to create a run with
     // streaming. The SDK provides helpful event listeners to handle 
     // the streamed response.
+
+    if (prompt === "") return;
+    setLoading(true);
+    const updatedMessages = [...messages, { role: "user", content: prompt }];
+    setMessages(updatedMessages);
+    const _annotations = [];
+    console.log('message length', updatedMessages.length);
+
     const thread = await openai.beta.threads.create({
       messages: [
         {
           role: 'user',
-          content: "What's the mission of Deep Knowledge Group? why are they so interested in Moldova?",
+          content: prompt + "please give me answer without any annotations",
         },
       ],
     });
@@ -99,13 +106,45 @@ function App() {
       assistant_id: process.env.REACT_APP_ASSISTANT_ID
     })
       .on('event', (event) => console.log('event', event))
-      .on('textDelta', (delta, snapshot) => console.log('textDelta', snapshot))
+      .on('textDelta', async (delta, snapshot) => {
+        setLoading(false);
+        const history = [...updatedMessages];
+        let assistantMessage = history[history.length - 1].role === 'DKV HR Onboarding Assistant' ? history[history.length - 1] : { role: 'DKV HR Onboarding Assistant', content: '' };
+
+        if(assistantMessage.content === '') {
+          history.push(assistantMessage);
+        }
+        const text = snapshot;
+        text.value = text.value.replace(/\*\*/g, "");
+        text.value = text.value.replace(/\#\#\#/g, "");
+        text.value = text.value.replace(/\#/g, "");
+        const { annotations } = text;
+        const citations = [];
+        for (let annotation of annotations) {
+          // text.value = text.value.replace(annotation.text, "[" + index + "]");
+          console.log("annotation", annotation.text);
+          _annotations.push(annotation.text);
+          console.log('annotation index', text.value.indexOf(annotation.text));
+          
+          text.value = text.value.replace(annotation.text, "");
+          
+          const { file_citation } = annotation;
+          if (file_citation) {
+            const citedFile = await openai.files.retrieve(file_citation.file_id);
+            citations.push(citedFile.filename);
+          }
+        }
+        assistantMessage.content = text.value;
+        setMessages(history);
+      })
       .on('messageDelta', (delta, snapshot) => console.log('messageDelta', snapshot))
       .on('run', (run) => console.log('run', run))
       .on('connect', () => console.log('connected'));
+
     const result = await run.finalRun();
     console.log('Run Result' + result);
   }
+
 
   useEffect(() => {
     createThread();
@@ -152,8 +191,8 @@ function App() {
                 setPrompt(value);
               }}
               onSend={() => {
-                createMessage(prompt);
-                // createStream();
+                // createMessage(prompt);
+                createStream(prompt);
               }}
               disabled={loading}
             />
